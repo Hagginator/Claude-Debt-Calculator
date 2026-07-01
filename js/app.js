@@ -1,4 +1,5 @@
 window.onload = function () {
+<<<<<<< HEAD
     loadDebts();
     renderDebts();
     updateSummary();
@@ -18,3 +19,13 @@ function persistBudgetSettings() {
     const strategy = document.getElementById("strategy").value;
     saveBudgetSettings(budget, strategy);
 }
+=======
+
+    loadDebts();
+
+    renderDebts();
+
+    updateSummary();
+
+};
+>>>>>>> e860a7a36a52603be878564f556184e8ff06439b

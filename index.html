@@ -8,6 +8,15 @@
 
     <title>Debt Manager</title>
 
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00594F">
+
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Debt Manager">
+
     <link rel="stylesheet" href="css/style.css?v=14">
 
 </head>
@@ -213,6 +222,16 @@
     <script src="js/repaymentEngine.js?v=14"></script>
     <script src="js/planner.js?v=14"></script>
     <script src="js/app.js?v=14"></script>
+
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("sw.js").catch(err => {
+                    console.warn("Service worker registration failed:", err);
+                });
+            });
+        }
+    </script>
 
 </body>
 
