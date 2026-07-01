@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debt Calculator</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Debt Calculator</h1>
+
+        <div class="summary">
+
+            <div class="card">
+    <h2>Total Debt</h2>
+    <p id="totalDebt">£0.00</p>
+</div>
+
+<div class="card">
+    <h2>Monthly Interest</h2>
+    <p id="monthlyInterest">£0.00</p>
+</div>
+
+<div class="card">
+    <h2>Debt Free</h2>
+    <p id="debtFree">--</p>
+</div>
+
+        </div>
+
+        <h2>Your Debts</h2>
+
+<div class="add-debt">
+
+    <input type="text" id="lender" placeholder="Lender">
+
+    <input type="number" id="balance" placeholder="Balance">
+
+    <input type="number" id="apr" placeholder="APR">
+
+    <input
+    type="number"
+    id="limit"
+    placeholder="Credit Limit">
+
+    <input type="number" id="minimum" placeholder="Minimum Payment">
+
+    <button onclick="addDebt()">Add Debt</button>
+
+</div>
+
+<div id="debts"></div>
+
+    </div>
+
+    <script src="js/debts.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/calculations.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
