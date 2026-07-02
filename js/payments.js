@@ -21,6 +21,16 @@ function renderPaymentsTab() {
         <h4>💳 ${debt.lender}</h4>
         <span class="payment-row-balance">🎉 Paid off</span>
     </div>
+    <div class="payment-row-action">
+        <input
+            type="number"
+            min="0"
+            step="1"
+            class="payment-input"
+            id="paymentInput-${index}"
+            placeholder="Amount">
+        <button class="log-charge-btn" onclick="logCharge(${index})">➕ Log Charge</button>
+    </div>
 </div>`;
         }
 
@@ -38,7 +48,8 @@ function renderPaymentsTab() {
             class="payment-input"
             id="paymentInput-${index}"
             placeholder="£${getGuaranteedPayment(debt).toFixed(2)}">
-        <button class="log-payment-btn" onclick="logPayment(${index})">Log Payment</button>
+        <button class="log-payment-btn" onclick="logPayment(${index})">➖ Payment</button>
+        <button class="log-charge-btn" onclick="logCharge(${index})">➕ Charge</button>
     </div>
 </div>`;
     }).join("");
@@ -64,4 +75,24 @@ function logPayment(index) {
     updateSummary();
 
     if (justPaidOff) celebrateDebtPaidOff();
+}
+
+// The other direction from logPayment — a new purchase, a missed
+// payment's fee, whatever added to the balance instead of reducing it.
+function logCharge(index) {
+
+    const input = document.getElementById(`paymentInput-${index}`);
+    const amount = Number(input.value);
+
+    if (!amount || amount <= 0) {
+        alert("Enter a charge amount greater than £0.");
+        return;
+    }
+
+    const debt = debts[index];
+    debt.balance += amount;
+
+    saveDebts();
+    renderDebts();
+    updateSummary();
 }

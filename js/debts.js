@@ -9,6 +9,7 @@ function addDebt() {
     const limit = Number(document.getElementById("limit").value);
     const minimum = Number(document.getElementById("minimum").value);
 
+    const minPercentRaw = document.getElementById("minPercent").value;
     const promoAprRaw = document.getElementById("promoApr").value;
     const promoEndDateRaw = document.getElementById("promoEndDate").value;
     const fixedPaymentRaw = document.getElementById("fixedPayment").value;
@@ -28,8 +29,9 @@ function addDebt() {
     const promoApr = (promoAprRaw !== "" && promoEndDateRaw !== "") ? Number(promoAprRaw) : null;
     const promoEndDate = (promoAprRaw !== "" && promoEndDateRaw !== "") ? promoEndDateRaw : null;
     const fixedPayment = fixedPaymentRaw !== "" ? Number(fixedPaymentRaw) : null;
+    const minPercent = minPercentRaw !== "" ? Number(minPercentRaw) : null;
 
-    const debt = { lender, balance, apr, limit, minimum, promoApr, promoEndDate, fixedPayment };
+    const debt = { lender, balance, apr, limit, minimum, minPercent, promoApr, promoEndDate, fixedPayment };
 
     if (editingIndex === null) {
         debts.push(debt);
@@ -75,6 +77,7 @@ function editDebt(index) {
     document.getElementById("apr").value = debt.apr;
     document.getElementById("limit").value = debt.limit;
     document.getElementById("minimum").value = debt.minimum;
+    document.getElementById("minPercent").value = (debt.minPercent !== null && debt.minPercent !== undefined) ? debt.minPercent : "";
     document.getElementById("promoApr").value = (debt.promoApr !== null && debt.promoApr !== undefined) ? debt.promoApr : "";
     document.getElementById("promoEndDate").value = debt.promoEndDate || "";
     document.getElementById("fixedPayment").value = (debt.fixedPayment !== null && debt.fixedPayment !== undefined) ? debt.fixedPayment : "";
@@ -114,9 +117,21 @@ function getEffectiveApr(debt, monthsFromNow = 0) {
     return checkDate < promoEnd ? Number(debt.promoApr) : Number(debt.apr);
 }
 
+// Most real cards require the GREATER of a flat amount or a % of the
+// current balance — and because that's balance-based, it shrinks as
+// the balance does. minPercent is optional; without it, the minimum
+// just stays whatever flat amount was entered, as before.
+function getEffectiveMinimum(debt) {
+    if (debt.minPercent === null || debt.minPercent === undefined || debt.minPercent === "") {
+        return Number(debt.minimum);
+    }
+    const percentBased = Number(debt.balance) * (Number(debt.minPercent) / 100);
+    return Math.max(Number(debt.minimum), percentBased);
+}
+
 // The amount that's actually guaranteed to be paid on this debt every
 // month: the fixed payment if one's been set (and it's always at
-// least the minimum), otherwise just the minimum.
+// least the minimum), otherwise just the (possibly %-based) minimum.
 function getGuaranteedPayment(debt) {
-    return Math.max(Number(debt.minimum), Number(debt.fixedPayment) || 0);
+    return Math.max(getEffectiveMinimum(debt), Number(debt.fixedPayment) || 0);
 }

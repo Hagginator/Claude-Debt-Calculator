@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Debt Manager">
 
-    <link rel="stylesheet" href="css/style.css?v=29">
+    <link rel="stylesheet" href="css/style.css?v=31">
 
 </head>
 
@@ -134,6 +134,13 @@
                     type="number"
                     id="minimum"
                     placeholder="Min Payment">
+
+                <input
+                    type="number"
+                    id="minPercent"
+                    step="0.1"
+                    title="Optional — most cards require the greater of this % of your balance or the flat Min Payment above. Leave blank to always use the flat amount."
+                    placeholder="Min % (optional)">
 
                 <input
                     type="number"
@@ -270,6 +277,36 @@
             <h3 style="margin-bottom:20px;">⚙️ Settings</h3>
 
             <div class="settings-section">
+                <h4>Theme</h4>
+                <p class="settings-hint">
+                    Pick an accent colour and the whole app re-themes around it.
+                </p>
+                <div class="theme-picker">
+                    <input
+                        type="color"
+                        id="themeColorPicker"
+                        value="#C4F000"
+                        oninput="handleThemeColorInput(this.value)">
+                    <input
+                        type="text"
+                        id="themeColorText"
+                        class="theme-hex-input"
+                        value="#C4F000"
+                        maxlength="7"
+                        oninput="handleThemeHexInput(this.value)">
+                    <button class="settings-btn" onclick="resetTheme()">Reset</button>
+                </div>
+                <div class="theme-presets">
+                    <button class="theme-swatch" style="background:#C4F000;" title="Lime (default)" onclick="selectThemePreset('#C4F000')"></button>
+                    <button class="theme-swatch" style="background:#3B82F6;" title="Blue" onclick="selectThemePreset('#3B82F6')"></button>
+                    <button class="theme-swatch" style="background:#A855F7;" title="Purple" onclick="selectThemePreset('#A855F7')"></button>
+                    <button class="theme-swatch" style="background:#EC4899;" title="Pink" onclick="selectThemePreset('#EC4899')"></button>
+                    <button class="theme-swatch" style="background:#F97316;" title="Orange" onclick="selectThemePreset('#F97316')"></button>
+                    <button class="theme-swatch" style="background:#14B8A6;" title="Teal" onclick="selectThemePreset('#14B8A6')"></button>
+                </div>
+            </div>
+
+            <div class="settings-section">
                 <h4>Backup Your Data</h4>
                 <p class="settings-hint">
                     Everything lives only in this browser. Export a backup file, or restore one on another device.
@@ -294,18 +331,19 @@
     <!-- Full-screen confetti burst, drawn when a debt is fully paid off -->
     <canvas id="confettiCanvas" class="hidden"></canvas>
 
-    <script src="js/debts.js?v=29"></script>
-    <script src="js/ui.js?v=29"></script>
-    <script src="js/storage.js?v=29"></script>
-    <script src="js/calculations.js?v=29"></script>
-    <script src="js/payments.js?v=29"></script>
-    <script src="js/tabs.js?v=29"></script>
-    <script src="js/settings.js?v=29"></script>
-    <script src="js/confetti.js?v=29"></script>
+    <script src="js/debts.js?v=31"></script>
+    <script src="js/ui.js?v=31"></script>
+    <script src="js/storage.js?v=31"></script>
+    <script src="js/calculations.js?v=31"></script>
+    <script src="js/payments.js?v=31"></script>
+    <script src="js/tabs.js?v=31"></script>
+    <script src="js/settings.js?v=31"></script>
+    <script src="js/theme.js?v=31"></script>
+    <script src="js/confetti.js?v=31"></script>
 
-    <script src="js/repaymentEngine.js?v=29"></script>
-    <script src="js/planner.js?v=29"></script>
-    <script src="js/app.js?v=29"></script>
+    <script src="js/repaymentEngine.js?v=31"></script>
+    <script src="js/planner.js?v=31"></script>
+    <script src="js/app.js?v=31"></script>
 
     <script>
         if ("serviceWorker" in navigator) {

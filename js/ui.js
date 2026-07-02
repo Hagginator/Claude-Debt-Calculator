@@ -38,6 +38,8 @@ function renderDebts() {
         const availableCredit = Math.max(0, debt.limit - debt.balance);
         const monthlyInterest = (debt.balance * (effectiveApr / 100)) / 12;
         const progressWidth = Math.min(utilisation, 100);
+        const effectiveMinimum = getEffectiveMinimum(debt);
+        const isPercentMinimum = debt.minPercent !== null && debt.minPercent !== undefined && debt.minPercent !== "";
 
         let progressColour, healthText, healthIcon;
 
@@ -99,8 +101,8 @@ function renderDebts() {
             <strong>£${monthlyInterest.toFixed(2)}</strong>
         </div>
         <div class="plan-stat">
-            <span>Minimum Payment</span>
-            <strong>£${debt.minimum.toFixed(2)}</strong>
+            <span>Minimum Payment${isPercentMinimum ? ` (${debt.minPercent}% + floor)` : ""}</span>
+            <strong>£${effectiveMinimum.toFixed(2)}</strong>
         </div>
         ${debt.fixedPayment ? `
         <div class="plan-stat" style="grid-column:1 / -1;">
@@ -124,6 +126,7 @@ function clearForm() {
     document.getElementById("apr").value = "";
     document.getElementById("limit").value = "";
     document.getElementById("minimum").value = "";
+    document.getElementById("minPercent").value = "";
     document.getElementById("promoApr").value = "";
     document.getElementById("promoEndDate").value = "";
     document.getElementById("fixedPayment").value = "";

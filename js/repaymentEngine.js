@@ -10,6 +10,7 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
         balance: Number(d.balance),
         apr: Number(d.apr),
         minimum: Number(d.minimum),
+        minPercent: d.minPercent,
         limit: Number(d.limit),
         promoApr: d.promoApr,
         promoEndDate: d.promoEndDate,
@@ -129,6 +130,7 @@ function runMinimumPaymentSimulation(debts) {
         balance: Number(d.balance),
         apr: Number(d.apr),
         minimum: Number(d.minimum),
+        minPercent: d.minPercent,
         promoApr: d.promoApr,
         promoEndDate: d.promoEndDate
     }));
@@ -152,7 +154,7 @@ function runMinimumPaymentSimulation(debts) {
 
         for (let d of active) {
             if (d.balance <= 0) continue;
-            d.balance -= Math.min(d.minimum, d.balance);
+            d.balance -= Math.min(getEffectiveMinimum(d), d.balance);
         }
 
         // If minimums don't even cover the interest charged, balances
@@ -178,6 +180,7 @@ function runMinimumPaymentSimulationForMonths(debts, monthCount) {
         balance: Number(d.balance),
         apr: Number(d.apr),
         minimum: Number(d.minimum),
+        minPercent: d.minPercent,
         promoApr: d.promoApr,
         promoEndDate: d.promoEndDate
     }));
@@ -199,7 +202,7 @@ function runMinimumPaymentSimulationForMonths(debts, monthCount) {
 
         for (let d of active) {
             if (d.balance <= 0) continue;
-            d.balance -= Math.min(d.minimum, d.balance);
+            d.balance -= Math.min(getEffectiveMinimum(d), d.balance);
         }
     }
 
