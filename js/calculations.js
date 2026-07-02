@@ -31,7 +31,7 @@ function updateSummary() {
 
     if (utilisation < 30) {
         utilisationCard.classList.add("util-green");
-    } else if (utilisation < 75) {
+    } else if (utilisation < 50) {
         utilisationCard.classList.add("util-amber");
     } else {
         utilisationCard.classList.add("util-red");

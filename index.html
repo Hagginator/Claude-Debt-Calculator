@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Debt Manager">
 
-    <link rel="stylesheet" href="css/style.css?v=25">
+    <link rel="stylesheet" href="css/style.css?v=28">
 
 </head>
 
@@ -49,7 +49,7 @@
 
             </div>
 
-            <button class="settings-button">
+            <button class="settings-button" onclick="openSettingsModal()">
                 ⚙️
             </button>
 
@@ -159,6 +159,15 @@
 
                 </button>
 
+                <button
+                    id="cancelEditButton"
+                    class="hidden"
+                    onclick="cancelEdit()">
+
+                    Cancel
+
+                </button>
+
             </div>
 
             <div id="debts"></div>
@@ -250,16 +259,52 @@
         </div>
     </div>
 
-    <script src="js/debts.js?v=25"></script>
-    <script src="js/ui.js?v=25"></script>
-    <script src="js/storage.js?v=25"></script>
-    <script src="js/calculations.js?v=25"></script>
-    <script src="js/payments.js?v=25"></script>
-    <script src="js/tabs.js?v=25"></script>
+    <!-- ==========================
+         SETTINGS MODAL
+    =========================== -->
 
-    <script src="js/repaymentEngine.js?v=25"></script>
-    <script src="js/planner.js?v=25"></script>
-    <script src="js/app.js?v=25"></script>
+    <div id="settingsModal" class="modal-overlay hidden" onclick="if (event.target === this) closeSettingsModal()">
+        <div class="modal">
+            <button class="modal-close" onclick="closeSettingsModal()">✕</button>
+            <h3 style="margin-bottom:20px;">⚙️ Settings</h3>
+
+            <div class="settings-section">
+                <h4>Backup Your Data</h4>
+                <p class="settings-hint">
+                    Everything lives only in this browser. Export a backup file, or restore one on another device.
+                </p>
+                <div class="settings-actions">
+                    <button class="settings-btn" onclick="exportData()">⬇️ Export Backup</button>
+                    <button class="settings-btn" onclick="document.getElementById('importFileInput').click()">⬆️ Import Backup</button>
+                </div>
+                <input type="file" id="importFileInput" accept="application/json" class="hidden" onchange="importData(event)">
+            </div>
+
+            <div class="settings-section">
+                <h4>Danger Zone</h4>
+                <p class="settings-hint">
+                    Permanently deletes every debt and setting stored in this browser. This can't be undone.
+                </p>
+                <button class="settings-btn danger" onclick="resetAllData()">🗑️ Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full-screen confetti burst, drawn when a debt is fully paid off -->
+    <canvas id="confettiCanvas" class="hidden"></canvas>
+
+    <script src="js/debts.js?v=28"></script>
+    <script src="js/ui.js?v=28"></script>
+    <script src="js/storage.js?v=28"></script>
+    <script src="js/calculations.js?v=28"></script>
+    <script src="js/payments.js?v=28"></script>
+    <script src="js/tabs.js?v=28"></script>
+    <script src="js/settings.js?v=28"></script>
+    <script src="js/confetti.js?v=28"></script>
+
+    <script src="js/repaymentEngine.js?v=28"></script>
+    <script src="js/planner.js?v=28"></script>
+    <script src="js/app.js?v=28"></script>
 
     <script>
         if ("serviceWorker" in navigator) {

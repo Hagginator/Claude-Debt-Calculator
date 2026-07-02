@@ -43,7 +43,7 @@ function renderDebts() {
 
         if (utilisation < 30) {
             progressColour = "#00A650"; healthText = "Healthy"; healthIcon = "🟢";
-        } else if (utilisation < 75) {
+        } else if (utilisation < 50) {
             progressColour = "#FFB800"; healthText = "Moderate"; healthIcon = "🟡";
         } else {
             progressColour = "#E10600"; healthText = "High Utilisation"; healthIcon = "🔴";

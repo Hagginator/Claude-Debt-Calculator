@@ -35,9 +35,9 @@ function addDebt() {
         debts.push(debt);
     } else {
         debts[editingIndex] = debt;
-        editingIndex = null;
-        document.getElementById("addDebtButton").textContent = "Add Debt";
     }
+
+    exitEditMode();
 
     saveDebts();
     renderDebts();
@@ -46,7 +46,21 @@ function addDebt() {
 }
 
 function deleteDebt(index) {
+
+    const debt = debts[index];
+    if (!confirm(`Delete ${debt.lender}? This can't be undone.`)) return;
+
     debts.splice(index, 1);
+
+    // Deleting the debt currently being edited would otherwise leave
+    // the form stuck in "Save Changes" mode pointing at a stale index.
+    if (editingIndex === index) {
+        exitEditMode();
+        clearForm();
+    } else if (editingIndex !== null && index < editingIndex) {
+        editingIndex--;
+    }
+
     renderDebts();
     updateSummary();
     saveDebts();
@@ -67,6 +81,18 @@ function editDebt(index) {
 
     editingIndex = index;
     document.getElementById("addDebtButton").textContent = "Save Changes";
+    document.getElementById("cancelEditButton").classList.remove("hidden");
+}
+
+function cancelEdit() {
+    exitEditMode();
+    clearForm();
+}
+
+function exitEditMode() {
+    editingIndex = null;
+    document.getElementById("addDebtButton").textContent = "Add Debt";
+    document.getElementById("cancelEditButton").classList.add("hidden");
 }
 
 // Returns the APR that actually applies to a debt at a given point in

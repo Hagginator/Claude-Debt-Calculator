@@ -54,9 +54,14 @@ function logPayment(index) {
         return;
     }
 
-    debts[index].balance = Math.max(0, debts[index].balance - amount);
+    const debt = debts[index];
+    const wasActive = debt.balance > 0.01;
+    debt.balance = Math.max(0, debt.balance - amount);
+    const justPaidOff = wasActive && debt.balance <= 0.01;
 
     saveDebts();
     renderDebts();
     updateSummary();
+
+    if (justPaidOff) celebrateDebtPaidOff();
 }
