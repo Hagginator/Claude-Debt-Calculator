@@ -11,6 +11,7 @@
 
 :root {
     --bg:#081512;
+    --bg-deep:#040D0B;
     --surface:#0F2A22;
     --surface-light:#163A2F;
     --surface-hover:#1D4A3B;
@@ -39,7 +40,7 @@
 
 body {
     font-family:var(--font-body);
-    background:linear-gradient(180deg, #040D0B, var(--bg));
+    background:linear-gradient(180deg, var(--bg-deep), var(--bg));
     color:var(--text);
     padding:45px;
 }

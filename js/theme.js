@@ -1,11 +1,12 @@
 /* =========================================
    Debt Manager — theme.js
-   Lets the user pick an accent colour and
-   re-derives --primary/--border from it so
-   the whole UI stays cohesive automatically.
+   Pick a background colour and the rest of
+   the palette (surfaces, text, accent) is
+   derived automatically to stay legible and
+   cohesive against it.
 ========================================= */
 
-const DEFAULT_THEME_COLOUR = "#C4F000";
+const DEFAULT_BG_COLOUR = "#081512";
 
 function hexToRgb(hex) {
     const clean = hex.replace("#", "");
@@ -66,37 +67,80 @@ function hslToRgb(h, s, l) {
     return { r: r * 255, g: g * 255, b: b * 255 };
 }
 
-// Applies a chosen accent colour across the app: the accent itself,
-// a darker/desaturated shade of the same hue for --primary (so
-// buttons/backgrounds stay readable and cohesive), and a translucent
-// tint of the accent for --border/glow effects. Structural surface
-// colours and semantic status colours (success/warning/danger) are
-// deliberately left alone.
-function applyThemeColor(hex) {
+function hslToHex(h, s, l) {
+    const { r, g, b } = hslToRgb(h, s, l);
+    return rgbToHex(r, g, b);
+}
 
-    if (!/^#[0-9A-Fa-f]{6}$/.test(hex)) return;
+// Builds a full, coherent palette from a single background colour:
+// elevated surfaces get progressively lighter than it, text/muted
+// flip to near-white or near-black depending on whether the
+// background reads as dark or light, and the accent either pushes
+// the background's own hue to something vivid, or — if the
+// background has barely any colour to begin with (grey/neutral) —
+// falls back to a bright neutral instead, since there's no real hue
+// to work with.
+function derivePalette(bgHex) {
 
-    const { r, g, b } = hexToRgb(hex);
-    let hsl = rgbToHsl(r, g, b);
+    const { r, g, b } = hexToRgb(bgHex);
+    const hsl = rgbToHsl(r, g, b);
 
-    // Keep the accent bright/saturated enough to stay legible as
-    // text-on-accent (buttons always pair it with the dark --bg text),
-    // regardless of how dark or grey a colour the user actually picks.
-    const clampedS = Math.max(hsl.s, 45);
-    const clampedL = Math.max(hsl.l, 45);
-    const accentRgb = hslToRgb(hsl.h, clampedS, clampedL);
-    const accentHex = rgbToHex(accentRgb.r, accentRgb.g, accentRgb.b);
+    // Leave room above/below the background for elevation steps and
+    // for text to stay legible, even if someone picks near-pure
+    // black or white.
+    const bgL = Math.max(4, Math.min(94, hsl.l));
+    const isDark = bgL < 50;
+    const hasHue = hsl.s > 12;
 
-    const primaryRgb = hslToRgb(hsl.h, Math.max(35, clampedS * 0.75), 20);
-    const primaryHoverRgb = hslToRgb(hsl.h, Math.max(35, clampedS * 0.75), 27);
+    const bg = hslToHex(hsl.h, hsl.s, bgL);
+    const bgDeep = hslToHex(hsl.h, hsl.s, Math.max(bgL - 5, 0));
 
+    const surface = hslToHex(hsl.h, hsl.s, Math.min(bgL + 7, 96));
+    const surfaceLight = hslToHex(hsl.h, hsl.s, Math.min(bgL + 13, 97));
+    const surfaceHover = hslToHex(hsl.h, hsl.s, Math.min(bgL + 20, 98));
+
+    const text = hslToHex(hsl.h, Math.min(hsl.s, 15), isDark ? 95 : 10);
+    const muted = hslToHex(hsl.h, Math.min(hsl.s, 15), isDark ? 68 : 40);
+
+    const accent = hasHue
+        ? hslToHex(hsl.h, Math.max(hsl.s, 65), isDark ? 62 : 40)
+        : hslToHex(hsl.h, 8, isDark ? 95 : 8);
+
+    const primaryL = isDark ? Math.min(bgL + 14, 90) : Math.max(bgL - 14, 10);
+    const primaryHoverL = isDark ? Math.min(bgL + 22, 92) : Math.max(bgL - 22, 6);
+    const primary = hasHue
+        ? hslToHex(hsl.h, Math.max(hsl.s * 0.8, 35), primaryL)
+        : hslToHex(hsl.h, 6, primaryL);
+    const primaryHover = hasHue
+        ? hslToHex(hsl.h, Math.max(hsl.s * 0.8, 35), primaryHoverL)
+        : hslToHex(hsl.h, 6, primaryHoverL);
+
+    const textRgb = hexToRgb(text);
+    const border = `rgba(${textRgb.r}, ${textRgb.g}, ${textRgb.b}, .12)`;
+
+    return { bg, bgDeep, surface, surfaceLight, surfaceHover, text, muted, accent, primary, primaryHover, border };
+}
+
+function applyThemeColor(bgHex) {
+
+    if (!/^#[0-9A-Fa-f]{6}$/.test(bgHex)) return;
+
+    const palette = derivePalette(bgHex);
     const root = document.documentElement;
-    root.style.setProperty("--accent", accentHex);
-    root.style.setProperty("--primary", rgbToHex(primaryRgb.r, primaryRgb.g, primaryRgb.b));
-    root.style.setProperty("--primary-hover", rgbToHex(primaryHoverRgb.r, primaryHoverRgb.g, primaryHoverRgb.b));
-    root.style.setProperty("--border", `rgba(${accentRgb.r | 0}, ${accentRgb.g | 0}, ${accentRgb.b | 0}, .12)`);
 
-    return accentHex;
+    root.style.setProperty("--bg", palette.bg);
+    root.style.setProperty("--bg-deep", palette.bgDeep);
+    root.style.setProperty("--surface", palette.surface);
+    root.style.setProperty("--surface-light", palette.surfaceLight);
+    root.style.setProperty("--surface-hover", palette.surfaceHover);
+    root.style.setProperty("--text", palette.text);
+    root.style.setProperty("--muted", palette.muted);
+    root.style.setProperty("--accent", palette.accent);
+    root.style.setProperty("--primary", palette.primary);
+    root.style.setProperty("--primary-hover", palette.primaryHover);
+    root.style.setProperty("--border", palette.border);
+
+    return bgHex;
 }
 
 function syncThemeInputs(hex) {
@@ -110,7 +154,7 @@ function handleThemeColorInput(hex) {
     const applied = applyThemeColor(hex);
     if (!applied) return;
     syncThemeInputs(applied);
-    localStorage.setItem("themeAccent", applied);
+    localStorage.setItem("themeBackground", applied);
 }
 
 function handleThemeHexInput(value) {
@@ -124,23 +168,22 @@ function selectThemePreset(hex) {
 }
 
 function resetTheme() {
-    localStorage.removeItem("themeAccent");
+    localStorage.removeItem("themeBackground");
     const root = document.documentElement;
-    root.style.removeProperty("--accent");
-    root.style.removeProperty("--primary");
-    root.style.removeProperty("--primary-hover");
-    root.style.removeProperty("--border");
-    syncThemeInputs(DEFAULT_THEME_COLOUR);
+    ["--bg", "--bg-deep", "--surface", "--surface-light", "--surface-hover",
+     "--text", "--muted", "--accent", "--primary", "--primary-hover", "--border"]
+        .forEach(prop => root.style.removeProperty(prop));
+    syncThemeInputs(DEFAULT_BG_COLOUR);
 }
 
 function loadTheme() {
-    const saved = localStorage.getItem("themeAccent");
-    const hex = saved || DEFAULT_THEME_COLOUR;
+    const saved = localStorage.getItem("themeBackground");
+    const hex = saved || DEFAULT_BG_COLOUR;
     if (saved) applyThemeColor(saved);
     syncThemeInputs(hex);
 }
 
 // Applied as soon as this script runs (rather than waiting for
-// window.onload) so a saved custom colour shows immediately instead
-// of flashing the default lime accent first.
+// window.onload) so a saved custom theme shows immediately instead
+// of flashing the default one first.
 loadTheme();

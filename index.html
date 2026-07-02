@@ -17,7 +17,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Debt Manager">
 
-    <link rel="stylesheet" href="css/style.css?v=31">
+    <link rel="stylesheet" href="css/style.css?v=32">
 
 </head>
 
@@ -279,30 +279,30 @@
             <div class="settings-section">
                 <h4>Theme</h4>
                 <p class="settings-hint">
-                    Pick an accent colour and the whole app re-themes around it.
+                    Pick a background colour — surfaces, text and accents are all derived from it automatically.
                 </p>
                 <div class="theme-picker">
                     <input
                         type="color"
                         id="themeColorPicker"
-                        value="#C4F000"
+                        value="#081512"
                         oninput="handleThemeColorInput(this.value)">
                     <input
                         type="text"
                         id="themeColorText"
                         class="theme-hex-input"
-                        value="#C4F000"
+                        value="#081512"
                         maxlength="7"
                         oninput="handleThemeHexInput(this.value)">
                     <button class="settings-btn" onclick="resetTheme()">Reset</button>
                 </div>
                 <div class="theme-presets">
-                    <button class="theme-swatch" style="background:#C4F000;" title="Lime (default)" onclick="selectThemePreset('#C4F000')"></button>
-                    <button class="theme-swatch" style="background:#3B82F6;" title="Blue" onclick="selectThemePreset('#3B82F6')"></button>
-                    <button class="theme-swatch" style="background:#A855F7;" title="Purple" onclick="selectThemePreset('#A855F7')"></button>
-                    <button class="theme-swatch" style="background:#EC4899;" title="Pink" onclick="selectThemePreset('#EC4899')"></button>
-                    <button class="theme-swatch" style="background:#F97316;" title="Orange" onclick="selectThemePreset('#F97316')"></button>
-                    <button class="theme-swatch" style="background:#14B8A6;" title="Teal" onclick="selectThemePreset('#14B8A6')"></button>
+                    <button class="theme-swatch" style="background:#081512;" title="Racing Green (default)" onclick="selectThemePreset('#081512')"></button>
+                    <button class="theme-swatch" style="background:#0B1220;" title="Midnight Blue" onclick="selectThemePreset('#0B1220')"></button>
+                    <button class="theme-swatch" style="background:#1A0F1F;" title="Deep Plum" onclick="selectThemePreset('#1A0F1F')"></button>
+                    <button class="theme-swatch" style="background:#1C1917;" title="Warm Charcoal" onclick="selectThemePreset('#1C1917')"></button>
+                    <button class="theme-swatch" style="background:#4B5563;" title="Slate Grey" onclick="selectThemePreset('#4B5563')"></button>
+                    <button class="theme-swatch" style="background:#F1F1EE;" title="Soft White" onclick="selectThemePreset('#F1F1EE')"></button>
                 </div>
             </div>
 
@@ -331,19 +331,19 @@
     <!-- Full-screen confetti burst, drawn when a debt is fully paid off -->
     <canvas id="confettiCanvas" class="hidden"></canvas>
 
-    <script src="js/debts.js?v=31"></script>
-    <script src="js/ui.js?v=31"></script>
-    <script src="js/storage.js?v=31"></script>
-    <script src="js/calculations.js?v=31"></script>
-    <script src="js/payments.js?v=31"></script>
-    <script src="js/tabs.js?v=31"></script>
-    <script src="js/settings.js?v=31"></script>
-    <script src="js/theme.js?v=31"></script>
-    <script src="js/confetti.js?v=31"></script>
+    <script src="js/debts.js?v=32"></script>
+    <script src="js/ui.js?v=32"></script>
+    <script src="js/storage.js?v=32"></script>
+    <script src="js/calculations.js?v=32"></script>
+    <script src="js/payments.js?v=32"></script>
+    <script src="js/tabs.js?v=32"></script>
+    <script src="js/settings.js?v=32"></script>
+    <script src="js/theme.js?v=32"></script>
+    <script src="js/confetti.js?v=32"></script>
 
-    <script src="js/repaymentEngine.js?v=31"></script>
-    <script src="js/planner.js?v=31"></script>
-    <script src="js/app.js?v=31"></script>
+    <script src="js/repaymentEngine.js?v=32"></script>
+    <script src="js/planner.js?v=32"></script>
+    <script src="js/app.js?v=32"></script>
 
     <script>
         if ("serviceWorker" in navigator) {
