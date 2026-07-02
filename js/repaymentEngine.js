@@ -20,6 +20,13 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
     let totalInterest = 0;
     let firstMonthBreakdown = null;
 
+    // Which month each debt's balance first hits zero, and how much
+    // interest it racked up in total along the way. Powers the Debt
+    // Freedom Timeline and the per-debt "interest saved" breakdown.
+    const payoffMonths = {};
+    const perDebtInterest = {};
+    activeDebts.forEach(d => { perDebtInterest[d.lender] = 0; });
+
     while (activeDebts.some(d => d.balance > 0.01)) {
 
         month++;
@@ -42,6 +49,7 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
             const interest = d.balance * ((apr / 100) / 12);
             d.balance += interest;
             monthlyInterest += interest;
+            perDebtInterest[d.lender] += interest;
         }
         totalInterest += monthlyInterest;
 
@@ -101,10 +109,17 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
             }));
         }
 
+        // Record the first month any debt's balance actually clears.
+        for (let d of activeDebts) {
+            if (d.balance <= 0.01 && payoffMonths[d.lender] === undefined) {
+                payoffMonths[d.lender] = month;
+            }
+        }
+
         if (month > 600) break; // safety stop
     }
 
-    return { months: month, totalInterest, breakdown: firstMonthBreakdown };
+    return { months: month, totalInterest, breakdown: firstMonthBreakdown, payoffMonths, perDebtInterest };
 }
 
 // Baseline: paying only minimums, no extra budget
@@ -159,6 +174,7 @@ function runMinimumPaymentSimulation(debts) {
 function runMinimumPaymentSimulationForMonths(debts, monthCount) {
 
     let active = debts.map(d => ({
+        lender: d.lender,
         balance: Number(d.balance),
         apr: Number(d.apr),
         minimum: Number(d.minimum),
@@ -167,6 +183,8 @@ function runMinimumPaymentSimulationForMonths(debts, monthCount) {
     }));
 
     let totalInterest = 0;
+    const perDebtInterest = {};
+    active.forEach(d => { perDebtInterest[d.lender] = 0; });
 
     for (let month = 1; month <= monthCount; month++) {
 
@@ -176,6 +194,7 @@ function runMinimumPaymentSimulationForMonths(debts, monthCount) {
             const interest = (apr / 100 / 12) * d.balance;
             d.balance += interest;
             totalInterest += interest;
+            perDebtInterest[d.lender] += interest;
         }
 
         for (let d of active) {
@@ -184,5 +203,5 @@ function runMinimumPaymentSimulationForMonths(debts, monthCount) {
         }
     }
 
-    return { totalInterest };
+    return { totalInterest, perDebtInterest };
 }

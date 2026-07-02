@@ -172,6 +172,8 @@ function renderPlan(sim, baseline, budget, strategy, brokenMinimums) {
     ${warningBanner}
 </div>
 
+${buildTimelineHtml(sim)}
+
 <div class="plan-card">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
         <h3 style="margin:0;">💳 Pay This Month</h3>
@@ -188,7 +190,11 @@ function renderPlan(sim, baseline, budget, strategy, brokenMinimums) {
     </p>
     ${paymentRows}
     ${allocationNote}
-</div>`;
+</div>
+
+${buildInterestBreakdownHtml(sim, baseline)}
+
+${buildWhatIfHtml(sim, budget, strategy)}`;
 
     document.getElementById("repaymentPlan").innerHTML = html;
     document.getElementById("debtFree").textContent = debtFreeDate;
@@ -275,4 +281,104 @@ function getFutureDate(months) {
     const date = new Date();
     date.setMonth(date.getMonth() + months);
     return date.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
+
+// A vertical "this card clears, then this one, then you're done"
+// milestone list built from the simulation's per-debt payoff months.
+function buildTimelineHtml(sim) {
+
+    const milestones = Object.entries(sim.payoffMonths)
+        .map(([lender, month]) => ({ month, lender }))
+        .sort((a, b) => a.month - b.month);
+
+    const items = [{ month: 0, label: "Now", isStart: true }, ...milestones];
+
+    const rows = items.map(item => {
+        const isFinal = !item.isStart && item.month === sim.months;
+        const label = item.isStart
+            ? item.label
+            : isFinal
+                ? `🎉 ${item.lender} cleared — you're debt free!`
+                : `💳 ${item.lender} cleared`;
+
+        return `
+<div class="timeline-item${isFinal ? " timeline-final" : ""}">
+    <div class="timeline-dot"></div>
+    <div class="timeline-content">
+        <span class="timeline-month">Month ${item.month}</span>
+        <span class="timeline-label">${label}</span>
+    </div>
+</div>`;
+    }).join("");
+
+    return `
+<div class="plan-card">
+    <h3>🧭 Debt Freedom Timeline</h3>
+    <div class="timeline">${rows}</div>
+</div>`;
+}
+
+// Per-debt interest saved (plan vs. minimums-only baseline), rather
+// than just one combined total.
+function buildInterestBreakdownHtml(sim, baseline) {
+
+    const rows = Object.keys(sim.perDebtInterest)
+        .map(lender => ({
+            lender,
+            saved: (baseline.perDebtInterest[lender] || 0) - sim.perDebtInterest[lender]
+        }))
+        .sort((a, b) => b.saved - a.saved);
+
+    const items = rows.map(r => `
+<div class="summary-item">
+    <span>💳 ${r.lender}</span>
+    <strong>£${Math.max(0, r.saved).toFixed(2)}</strong>
+</div>`).join("");
+
+    return `
+<div class="plan-card">
+    <h3>💰 Interest Saved Breakdown</h3>
+    <div class="summary-grid">
+        ${items}
+    </div>
+</div>`;
+}
+
+// Quick "what if I found a bit more room in the budget" comparisons —
+// reruns the simulation at a few higher budgets (keeping any custom
+// extras the user has already set) and shows the time/interest saved.
+function buildWhatIfHtml(sim, budget, strategy) {
+
+    const deltas = [25, 50, 100];
+
+    const rows = deltas.map(delta => {
+        const testSim = runRepaymentSimulation(
+            JSON.parse(JSON.stringify(debts)),
+            budget + delta,
+            strategy,
+            currentCustomExtras
+        );
+
+        const monthsSaved = sim.months - testSim.months;
+        const interestSaved = Math.max(0, sim.totalInterest - testSim.totalInterest);
+
+        const timeLabel = monthsSaved > 0
+            ? `${monthsSaved} month${monthsSaved > 1 ? "s" : ""} sooner`
+            : "same payoff date";
+
+        return `
+<div class="whatif-row">
+    <span class="whatif-delta">+£${delta}/mo</span>
+    <span class="whatif-result">${timeLabel} · £${interestSaved.toFixed(2)} less interest</span>
+</div>`;
+    }).join("");
+
+    return `
+<div class="plan-card">
+    <h3>🔮 What If I Paid Extra?</h3>
+    <p style="color:var(--muted);font-size:.85rem;margin-bottom:16px;">
+        Based on your current £${budget.toFixed(2)}/mo budget and ${strategy === "snowball" ? "Snowball" : "Avalanche"} strategy.
+    </p>
+    ${rows}
+</div>`;
 }

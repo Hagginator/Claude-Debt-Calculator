@@ -2,15 +2,37 @@
    Debt Manager — ui.js
 ========================================= */
 
+// Which debt the current strategy would attack first — highest
+// effective APR for avalanche, smallest balance for snowball. Only
+// meaningful with 2+ active debts, since with one there's no choice.
+function getPriorityLender() {
+
+    const activeDebts = debts.filter(d => d.balance > 0.01);
+    if (activeDebts.length < 2) return null;
+
+    const strategyEl = document.getElementById("strategy");
+    const strategy = strategyEl ? strategyEl.value : "avalanche";
+
+    const sorted = [...activeDebts].sort((a, b) => strategy === "snowball"
+        ? a.balance - b.balance
+        : getEffectiveApr(b, 0) - getEffectiveApr(a, 0)
+    );
+
+    return sorted[0].lender;
+}
+
 function renderDebts() {
 
     const container = document.getElementById("debts");
     let html = "";
 
+    const priorityLender = getPriorityLender();
+
     debts.forEach((debt, index) => {
 
         const effectiveApr = getEffectiveApr(debt, 0);
         const isPromoActive = effectiveApr !== Number(debt.apr);
+        const isPriority = debt.lender === priorityLender;
 
         const utilisation = debt.limit > 0 ? (debt.balance / debt.limit) * 100 : 0;
         const availableCredit = Math.max(0, debt.limit - debt.balance);
@@ -36,11 +58,11 @@ function renderDebts() {
             : `${debt.apr}% APR`;
 
         html += `
-<div class="debt-card">
+<div class="debt-card${isPriority ? " priority-debt" : ""}">
 
     <div class="debt-top">
         <div>
-            <h3>💳 ${debt.lender}</h3>
+            <h3>💳 ${debt.lender} ${isPriority ? '<span class="priority-badge">🎯 Pay First</span>' : ""}</h3>
             <p style="margin-top:6px;color:var(--muted);font-family:var(--font-mono);">${aprLine}</p>
         </div>
         <div class="debt-actions">
