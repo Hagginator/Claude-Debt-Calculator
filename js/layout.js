@@ -17,6 +17,14 @@ function selectLayout(name) {
     applyLayout(name);
     localStorage.setItem("layoutTheme", name);
     syncLayoutButtons(name);
+
+    // Switching layout can move the tabs from a horizontal bar to a
+    // vertical sidebar (or back) — the sliding indicator needs to
+    // snap to the button's new position immediately rather than
+    // waiting for the next tab click or window resize.
+    if (typeof moveTabIndicator === "function") {
+        moveTabIndicator(document.querySelector(".tab-btn.active"), true);
+    }
 }
 
 function syncLayoutButtons(name) {

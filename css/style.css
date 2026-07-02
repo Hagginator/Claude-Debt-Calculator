@@ -915,6 +915,19 @@ h3, h4 { font-family:var(--font-display); font-weight:600; letter-spacing:.5px; 
 @media (max-width:900px) {
     .planner { grid-template-columns:1fr; }
     .summary { grid-template-columns:1fr 1fr; }
+
+    html[data-layout="corporate"] .container,
+    html[data-layout="terminal"] .container {
+        grid-template-columns:1fr;
+        grid-template-areas:"header" "nav" "content";
+    }
+    html[data-layout="corporate"] .tabs,
+    html[data-layout="terminal"] .tabs {
+        flex-direction:row;
+        position:static;
+    }
+    html[data-layout="modern"] .summary { grid-template-columns:1fr 1fr; }
+    html[data-layout="modern"] .summary .card:first-child { grid-column:span 2; grid-row:span 1; }
 }
 
 @media (max-width:600px) {
@@ -1004,6 +1017,20 @@ html[data-layout="modern"] .priority-badge { border-radius:8px; font-weight:600;
 html[data-layout="modern"] .ico { display:none; }
 html[data-layout="modern"] .logo-text { display:block; }
 
+/* A featured "hero" stat instead of six equal tiles — a genuine
+   dashboard hierarchy, not just restyled boxes. */
+html[data-layout="modern"] .summary { grid-template-columns:repeat(3, 1fr); }
+html[data-layout="modern"] .summary .card:first-child {
+    grid-column:span 2;
+    grid-row:span 2;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    background:linear-gradient(135deg, var(--primary), var(--surface-light));
+}
+html[data-layout="modern"] .summary .card:first-child h2 { font-size:.85rem; }
+html[data-layout="modern"] .summary .card:first-child p { font-size:3rem; }
+
 /* ===== CORPORATE ===== */
 /* Structured, conservative, minimal colour —
    a traditional bank portal. */
@@ -1077,6 +1104,36 @@ html[data-layout="corporate"] .modal-close { border-radius:4px; }
 html[data-layout="corporate"] .ico { display:none; }
 html[data-layout="corporate"] .logo-text { display:block; }
 
+/* A genuine sidebar structure, not just a re-skinned top nav — the
+   header spans the top, navigation runs down the left, content sits
+   to its right. Real structural difference from Classic's top tabs. */
+html[data-layout="corporate"] .container {
+    display:grid;
+    grid-template-columns:200px 1fr;
+    grid-template-areas:"header header" "nav content";
+    column-gap:32px;
+    align-items:start;
+}
+html[data-layout="corporate"] .app-header { grid-area:header; margin-bottom:30px; }
+html[data-layout="corporate"] .tabs {
+    grid-area:nav;
+    flex-direction:column;
+    align-items:stretch;
+    position:sticky;
+    top:24px;
+}
+html[data-layout="corporate"] .tab-btn { text-align:left; }
+html[data-layout="corporate"] #tab-dashboard,
+html[data-layout="corporate"] #tab-payments,
+html[data-layout="corporate"] #tab-planner {
+    grid-area:content;
+    min-width:0;
+}
+
+/* A stacked list rather than a card grid — closer to a statement
+   of accounts than a dashboard of tiles. */
+html[data-layout="corporate"] #debts { grid-template-columns:1fr; }
+
 /* ===== ANALYST TERMINAL ===== */
 /* Dense, monospace-heavy, high-contrast dark
    — a trading platform, not a consumer app. */
@@ -1143,6 +1200,35 @@ html[data-layout="terminal"] .logo, html[data-layout="terminal"] .settings-butto
 
 html[data-layout="terminal"] .ico { display:none; }
 html[data-layout="terminal"] .logo-text { display:block; }
+
+/* Same sidebar structure as Corporate, but the content area packs
+   more, smaller cards in — a dense multi-panel feel instead of a
+   spacious portal. */
+html[data-layout="terminal"] .container {
+    display:grid;
+    grid-template-columns:180px 1fr;
+    grid-template-areas:"header header" "nav content";
+    column-gap:24px;
+    align-items:start;
+}
+html[data-layout="terminal"] .app-header { grid-area:header; margin-bottom:24px; }
+html[data-layout="terminal"] .tabs {
+    grid-area:nav;
+    flex-direction:column;
+    align-items:stretch;
+    position:sticky;
+    top:24px;
+}
+html[data-layout="terminal"] .tab-btn { text-align:left; }
+html[data-layout="terminal"] #tab-dashboard,
+html[data-layout="terminal"] #tab-payments,
+html[data-layout="terminal"] #tab-planner {
+    grid-area:content;
+    min-width:0;
+}
+
+html[data-layout="terminal"] .summary { grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; }
+html[data-layout="terminal"] #debts { grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:14px; }
 
 /* =========================================
    THEME-SWITCH TRANSITIONS
