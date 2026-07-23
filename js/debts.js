@@ -1,17 +1,6 @@
 let debts = [];
 let editingIndex = null;
 
-// A loan's payment isn't chosen — it's the fixed amount that exactly
-// clears the principal over the given term at the given rate. Falls
-// back to a plain equal split for a 0% loan, since the standard
-// formula divides by zero at monthlyRate === 0.
-function calculateLoanPayment(principal, apr, termMonths) {
-    const monthlyRate = (apr / 100) / 12;
-    if (monthlyRate === 0) return principal / termMonths;
-    return principal * monthlyRate * Math.pow(1 + monthlyRate, termMonths)
-        / (Math.pow(1 + monthlyRate, termMonths) - 1);
-}
-
 function addDebt() {
 
     const debtType = document.getElementById("debtType").value;
@@ -21,6 +10,11 @@ function addDebt() {
     const balance = Number(document.getElementById("balance").value);
     const apr = Number(document.getElementById("apr").value);
     const termMonths = Number(document.getElementById("termMonths").value);
+
+    // Loan is entered by its real agreement figures, not derived from APR:
+    // total repayable and monthly payment are tracked directly.
+    const totalRepayable = Number(document.getElementById("totalRepayable").value);
+    const loanMonthly = Number(document.getElementById("loanMonthly").value);
 
     const limit = Number(document.getElementById("limit").value);
     const minimumRaw = document.getElementById("minimum").value;
@@ -37,9 +31,14 @@ function addDebt() {
     }
 
     if (isLoan) {
-        if (termMonths <= 0) {
+        if (totalRepayable <= 0 || loanMonthly <= 0 || termMonths <= 0) {
             shakeForm();
-            alert("Enter a loan term in months.");
+            alert("A loan needs its total repayable, monthly payment and term — all straight off your agreement.");
+            return;
+        }
+        if (totalRepayable < balance) {
+            shakeForm();
+            alert("Total repayable can't be less than the amount borrowed.");
             return;
         }
     } else {
@@ -55,25 +54,15 @@ function addDebt() {
         }
     }
 
-    // A real loan's payment is fixed at origination — correcting the
-    // balance later (or just re-saving) shouldn't quietly re-amortize
-    // it lower. Only recalculate when the loan is brand new, converting
-    // from a card, or the APR/term itself changed (i.e. an actual
-    // refinance), otherwise keep whatever payment was already set.
-    let loanMinimum;
-    if (isLoan) {
-        const existing = editingIndex !== null ? debts[editingIndex] : null;
-        const isRefinance = !existing || existing.type !== "loan"
-            || Number(existing.apr) !== apr || Number(existing.termMonths) !== termMonths;
-        loanMinimum = isRefinance ? calculateLoanPayment(balance, apr, termMonths) : existing.minimum;
-    }
-
     const debt = isLoan
         ? {
-            lender, balance, apr,
+            lender, apr,
             type: "loan",
+            principal: balance,             // amount borrowed (informational)
+            balance: totalRepayable,        // tracked figure: total still to repay
+            originalTotal: totalRepayable,  // fixed reference for the progress bar
             termMonths,
-            minimum: loanMinimum,
+            minimum: loanMonthly,           // the real fixed monthly payment
             limit: null, minPercent: null, promoApr: null, promoEndDate: null, fixedPayment: null
         }
         : {
@@ -92,27 +81,28 @@ function addDebt() {
 
     if (editingIndex === null) {
         debt.history = [];
-        if (isLoan) debt.originalPrincipal = balance;
         debts.push(debt);
     } else {
         const existing = debts[editingIndex];
         debt.history = existing.history || [];
 
-        // The original loan amount is a fixed reference point for the
-        // "paid off so far" progress bar — keep it from before rather
-        // than resetting it every time the loan is edited.
         if (isLoan) {
-            debt.originalPrincipal = (existing.type === "loan" && existing.originalPrincipal)
-                ? existing.originalPrincipal
-                : balance;
-        }
-
-        // If the balance was changed by hand (rather than via Log
-        // Payment/Charge), record it too — otherwise the history trail
-        // would silently disagree with the debt's actual balance.
-        const delta = balance - existing.balance;
-        if (Math.abs(delta) > 0.005) {
-            recordHistory(debt, "adjustment", delta > 0 ? "up" : "down", Math.abs(delta));
+            // Correcting a loan's figures (or a refinance) must not wipe
+            // what's already been repaid. Preserve paid-so-far and rebase
+            // the remaining balance onto the new total.
+            const priorTotal = existing.type === "loan"
+                ? Number(existing.originalTotal ?? existing.balance)
+                : totalRepayable;
+            const paidSoFar = Math.max(0, priorTotal - Number(existing.balance || 0));
+            debt.originalTotal = totalRepayable;
+            debt.balance = Math.max(0, totalRepayable - paidSoFar);
+        } else {
+            // Card: a hand-edited balance is a real adjustment worth logging,
+            // otherwise the history trail silently disagrees with the balance.
+            const delta = balance - existing.balance;
+            if (Math.abs(delta) > 0.005) {
+                recordHistory(debt, "adjustment", delta > 0 ? "up" : "down", Math.abs(delta));
+            }
         }
 
         debts[editingIndex] = debt;
@@ -154,8 +144,12 @@ function editDebt(index) {
 
     document.getElementById("debtType").value = isLoan ? "loan" : "card";
     document.getElementById("lender").value = debt.lender;
-    document.getElementById("balance").value = debt.balance;
+    // For a loan the "balance" input holds the amount borrowed (principal);
+    // the tracked figure is the total repayable, entered separately.
+    document.getElementById("balance").value = isLoan ? (debt.principal ?? "") : debt.balance;
     document.getElementById("apr").value = debt.apr;
+    document.getElementById("totalRepayable").value = isLoan ? (debt.originalTotal ?? debt.balance) : "";
+    document.getElementById("loanMonthly").value = isLoan ? debt.minimum : "";
     document.getElementById("termMonths").value = debt.termMonths || "";
     document.getElementById("limit").value = debt.limit || "";
     document.getElementById("minimum").value = isLoan ? "" : debt.minimum;

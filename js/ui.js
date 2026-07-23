@@ -91,8 +91,14 @@ function renderDebts() {
         let progressWidth, progressColour, statusText, statusIcon, statsBlock;
 
         if (isLoan) {
-            const original = Number(debt.originalPrincipal) || debt.balance;
-            const paidOffPct = original > 0 ? ((original - debt.balance) / original) * 100 : 0;
+            // Loans are tracked against the TOTAL REPAYABLE, which already
+            // includes all the interest — the progress bar counts that down,
+            // not the amount borrowed. This is the fix for loans reading
+            // "paid off" early because only the principal was being tracked.
+            const originalTotal = Number(debt.originalTotal) || Number(debt.balance);
+            const borrowed = Number(debt.principal) || originalTotal;
+            const totalInterest = Math.max(0, originalTotal - borrowed);
+            const paidOffPct = originalTotal > 0 ? ((originalTotal - debt.balance) / originalTotal) * 100 : 0;
             progressWidth = Math.min(Math.max(paidOffPct, 0), 100);
             progressColour = "#00A650";
             statusText = progressWidth >= 99.99 ? "Paid Off" : "On Track";
@@ -101,20 +107,24 @@ function renderDebts() {
             statsBlock = `
     <div class="plan-grid">
         <div class="plan-stat">
-            <span>Original Loan Amount</span>
-            <strong>£${original.toFixed(2)}</strong>
+            <span>Borrowed</span>
+            <strong>£${borrowed.toFixed(2)}</strong>
         </div>
         <div class="plan-stat">
-            <span>Term</span>
-            <strong>${debt.termMonths} months</strong>
+            <span>Total Repayable</span>
+            <strong>£${originalTotal.toFixed(2)}</strong>
         </div>
         <div class="plan-stat">
-            <span>Monthly Interest</span>
-            <strong>£${monthlyInterest.toFixed(2)}</strong>
+            <span>Interest (fixed)</span>
+            <strong>£${totalInterest.toFixed(2)}</strong>
         </div>
         <div class="plan-stat">
-            <span>Monthly Payment</span>
+            <span>Payment · ${debt.termMonths}mo</span>
             <strong>£${effectiveMinimum.toFixed(2)}</strong>
+        </div>
+        <div class="plan-stat" style="grid-column:1 / -1;">
+            <span>Left to pay</span>
+            <strong>£${Number(debt.balance).toFixed(2)}</strong>
         </div>
     </div>`;
         } else {
@@ -205,6 +215,9 @@ function toggleDebtTypeFields() {
     const isLoan = document.getElementById("debtType").value === "loan";
     document.querySelectorAll(".card-field").forEach(el => el.classList.toggle("hidden", isLoan));
     document.querySelectorAll(".loan-field").forEach(el => el.classList.toggle("hidden", !isLoan));
+    // The shared balance/APR fields mean different things per type.
+    document.getElementById("balance").placeholder = isLoan ? "Amount borrowed" : "Balance";
+    document.getElementById("apr").placeholder = isLoan ? "APR (info only)" : "APR";
 }
 
 // A quick shake to draw the eye to the add-debt form when validation
@@ -228,6 +241,8 @@ function clearForm() {
     document.getElementById("promoEndDate").value = "";
     document.getElementById("fixedPayment").value = "";
     document.getElementById("termMonths").value = "";
+    document.getElementById("totalRepayable").value = "";
+    document.getElementById("loanMonthly").value = "";
     document.getElementById("debtType").value = "card";
     toggleDebtTypeFields();
 }

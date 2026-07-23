@@ -185,7 +185,8 @@ function runPlan() {
     );
 
     const brokenMinimums = debts
-        .filter(d => getGuaranteedPayment(d) < Number(d.balance) * (getEffectiveApr(d, 0) / 100 / 12))
+        .filter(d => d.type !== "loan"
+            && getGuaranteedPayment(d) < Number(d.balance) * (getEffectiveApr(d, 0) / 100 / 12))
         .map(d => d.lender);
 
     renderPlan(result, baseline, lastBudget, lastStrategy, brokenMinimums);

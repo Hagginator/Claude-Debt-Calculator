@@ -45,7 +45,11 @@ function updateSummary() {
         totalDebt += debt.balance;
         totalCreditLimit += debt.limit || 0;
         totalMinimumPayments += debt.minimum;
-        totalMonthlyInterest += (debt.balance * (getEffectiveApr(debt, 0) / 100)) / 12;
+        // Loans accrue no ongoing interest here — it's a fixed lump already
+        // inside their total-repayable balance, so they'd inflate this figure.
+        if (debt.type !== "loan") {
+            totalMonthlyInterest += (debt.balance * (getEffectiveApr(debt, 0) / 100)) / 12;
+        }
     });
 
     const utilisation = totalCreditLimit > 0

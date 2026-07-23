@@ -46,7 +46,7 @@ function exportCsv() {
     const headers = [
         "Lender", "Type", "Balance", "APR (%)", "Credit Limit", "Minimum Payment",
         "Minimum %", "Effective Minimum Payment", "Promo APR (%)", "Promo End Date", "Fixed Payment",
-        "Loan Term (months)", "Original Loan Amount"
+        "Loan Term (months)", "Amount Borrowed", "Total Repayable"
     ];
 
     const rows = debts.map(d => [
@@ -62,7 +62,8 @@ function exportCsv() {
         d.promoEndDate ?? "",
         d.fixedPayment ?? "",
         d.termMonths ?? "",
-        d.originalPrincipal ?? ""
+        (d.principal ?? d.originalPrincipal) ?? "",
+        d.originalTotal ?? ""
     ]);
 
     const escapeCell = (value) => {

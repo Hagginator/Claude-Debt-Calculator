@@ -7,6 +7,7 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
     // Always clone input (prevents mutation bugs)
     let activeDebts = debts.map(d => ({
         lender: d.lender,
+        type: d.type,
         balance: Number(d.balance),
         apr: Number(d.apr),
         minimum: Number(d.minimum),
@@ -44,8 +45,11 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
 
         // 1. Apply interest — using each debt's effective APR, which
         // accounts for any active 0% (or reduced) promo period.
+        // Loans are skipped: their balance is the total repayable, which
+        // already bakes in every penny of interest at origination. Accruing
+        // more on top would double-count it.
         for (let d of activeDebts) {
-            if (d.balance <= 0) continue;
+            if (d.balance <= 0 || d.type === "loan") continue;
             const apr = getEffectiveApr(d, month - 1);
             const interest = d.balance * ((apr / 100) / 12);
             d.balance += interest;
@@ -69,8 +73,12 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
         // that debt is still active. Once a debt clears, its custom
         // amount naturally stops applying and any leftover budget
         // falls through to step 4.
+        // ponytail: loans are excluded from extra payments — a fixed-total
+        // loan saves nothing by being overpaid (no interest to save, and
+        // early-settlement rebates are out of scope). Extra budget belongs
+        // on the revolving debt where it actually compounds.
         activeDebts.forEach((d, i) => {
-            if (d.balance <= 0.01) return;
+            if (d.balance <= 0.01 || d.type === "loan") return;
             const requested = Number(customExtras[d.lender]) || 0;
             if (requested <= 0) return;
             const payment = Math.min(requested, remainingBudget, d.balance);
@@ -87,7 +95,7 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
         // snowball: smallest balance first (fastest wins, keeps motivation up)
         const sorted = activeDebts
             .map((d, i) => ({ d, i }))
-            .filter(o => o.d.balance > 0.01)
+            .filter(o => o.d.balance > 0.01 && o.d.type !== "loan")
             .sort((a, b) => strategy === "snowball"
                 ? a.d.balance - b.d.balance
                 : getEffectiveApr(b.d, month - 1) - getEffectiveApr(a.d, month - 1)
@@ -127,6 +135,7 @@ function runRepaymentSimulation(debts, monthlyBudget, strategy = "avalanche", cu
 function runMinimumPaymentSimulation(debts) {
 
     let active = debts.map(d => ({
+        type: d.type,
         balance: Number(d.balance),
         apr: Number(d.apr),
         minimum: Number(d.minimum),
@@ -144,7 +153,7 @@ function runMinimumPaymentSimulation(debts) {
         let monthlyInterest = 0;
 
         for (let d of active) {
-            if (d.balance <= 0) continue;
+            if (d.balance <= 0 || d.type === "loan") continue; // loan interest is pre-baked
             const apr = getEffectiveApr(d, month - 1);
             const interest = (apr / 100 / 12) * d.balance;
             d.balance += interest;
@@ -177,6 +186,7 @@ function runMinimumPaymentSimulationForMonths(debts, monthCount) {
 
     let active = debts.map(d => ({
         lender: d.lender,
+        type: d.type,
         balance: Number(d.balance),
         apr: Number(d.apr),
         minimum: Number(d.minimum),
@@ -192,7 +202,7 @@ function runMinimumPaymentSimulationForMonths(debts, monthCount) {
     for (let month = 1; month <= monthCount; month++) {
 
         for (let d of active) {
-            if (d.balance <= 0) continue;
+            if (d.balance <= 0 || d.type === "loan") continue; // loan interest is pre-baked
             const apr = getEffectiveApr(d, month - 1);
             const interest = (apr / 100 / 12) * d.balance;
             d.balance += interest;
